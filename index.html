@@ -1,0 +1,761 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>7 DAYS WITH YOUR ROOMMATE — Day 1 Free Roam Prototype</title>
+<style>
+:root{
+  --bg:#0e1014;--panel:#171a20;--panel2:#1d2129;--panel3:#12151a;--text:#f4f2ee;--muted:#9fa4ae;
+  --line:#2d323c;--accent:#d9b7ff;--accent2:#9fd6ff;--good:#9dd7aa;--warn:#e7c487;--danger:#e89a9a;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:radial-gradient(circle at top,#1a1d25 0,#0e1014 55%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,select{font:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:18px 14px 42px}
+.top{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:16px}
+.title{font-size:22px;font-weight:900;letter-spacing:.3px}.sub{font-size:12px;color:var(--muted);margin-top:4px}
+.stats{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.pill{border:1px solid var(--line);padding:7px 9px;border-radius:999px;background:#11141a;font-size:12px;color:#d9dce2}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:14px}.panel{background:rgba(23,26,32,.97);border:1px solid var(--line);border-radius:18px;box-shadow:0 12px 40px rgba(0,0,0,.28);overflow:hidden}
+.scene{padding:22px;min-height:620px}.tag{display:inline-block;padding:5px 8px;border-radius:7px;background:#282d37;color:var(--accent);font-size:10px;text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px}
+.speaker{font-weight:850;color:var(--accent);margin:0 0 9px}.text{white-space:pre-wrap;line-height:1.78;font-size:16px;color:#f0eef2}.small{font-size:13px;color:var(--muted);line-height:1.65}
+.choices{display:grid;gap:9px;margin-top:22px}.choice{width:100%;text-align:left;border:1px solid var(--line);background:#14171c;color:var(--text);padding:14px 15px;border-radius:12px;cursor:pointer;transition:.15s}.choice:hover{border-color:#6d7280;background:#1c2027}.choice:disabled{opacity:.5;cursor:not-allowed}
+.card{border:1px solid var(--line);background:var(--panel3);border-radius:14px;padding:13px;margin-top:13px}.card h3{margin:0 0 8px;font-size:14px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.option{border:1px solid var(--line);background:#15181e;color:var(--text);padding:12px;border-radius:12px;text-align:left;cursor:pointer}.option:hover{border-color:#767b88}.option .main{font-weight:800}.option .desc{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.45}.option.selected{border-color:var(--accent2);background:#1a1f28}
+.field{display:grid;gap:6px;margin-top:12px}.field label{font-size:12px;color:var(--muted)}.field input,.field select{width:100%;border:1px solid var(--line);background:#101319;color:var(--text);padding:11px 12px;border-radius:10px;outline:none}.field input:focus,.field select:focus{border-color:#7d8290}
+.primary{border:1px solid #7b5f92;background:#2a2033;color:#fff;padding:13px 14px;border-radius:11px;cursor:pointer;font-weight:800}.primary:hover{filter:brightness(1.08)}
+.side{display:flex;flex-direction:column;gap:14px}.side .box{background:rgba(20,23,29,.96);border:1px solid var(--line);border-radius:16px;padding:15px}.side h4{margin:0 0 9px;font-size:12px;color:var(--muted);letter-spacing:.3px}.list{display:grid;gap:5px}.item{font-size:12px;line-height:1.45;color:#d6d9df}.item b{color:#fff}.meter{height:8px;background:#0d1015;border-radius:99px;overflow:hidden;border:1px solid var(--line);margin-top:5px}.meter > div{height:100%;background:#8c76a6}.money{font-size:26px;font-weight:900}.inventory{display:grid;gap:7px}.invrow{display:flex;justify-content:space-between;gap:8px;font-size:12px}.muted{color:var(--muted)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}.toolbar .choice{width:auto;padding:9px 11px}
+.location-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:15px}.loc{border:1px solid var(--line);background:#14171c;color:var(--text);padding:14px;border-radius:12px;text-align:left;cursor:pointer;min-height:92px}.loc:hover{border-color:#767b88;background:#1c2027}.loc .name{font-weight:850}.loc .desc{margin-top:5px;font-size:12px;line-height:1.45;color:var(--muted)}
+.action-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:15px}.action{border:1px solid var(--line);background:#15181e;color:var(--text);padding:13px;border-radius:12px;text-align:left;cursor:pointer}.action:hover{border-color:#6d7280;background:#1c2027}.action:disabled{opacity:.45;cursor:not-allowed}.action .a-title{font-weight:800}.action .a-cost{margin-top:4px;font-size:11px;color:var(--muted)}
+.notice{border-left:3px solid var(--warn);background:#181811;padding:10px 12px;border-radius:8px;font-size:13px;line-height:1.6;margin-top:14px}.danger-note{border-left-color:var(--danger);background:#1a1315}.good-note{border-left-color:var(--good);background:#131a15}
+.footer{margin-top:12px;color:var(--muted);font-size:11px;line-height:1.6}.success{color:var(--good)}.warning{color:var(--warn)}.danger{color:var(--danger)}
+@media(max-width:920px){.layout{grid-template-columns:1fr}.side{display:grid;grid-template-columns:1fr 1fr}.top{align-items:flex-start;flex-direction:column}.stats{justify-content:flex-start}.location-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.side{display:block}.grid2,.grid3,.action-grid,.location-grid{grid-template-columns:1fr}.scene{min-height:0;padding:18px}.text{font-size:15px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <div class="title">7 DAYS WITH YOUR ROOMMATE</div>
+      <div class="sub" id="subtitle">DAY 1 · Free Roam Prototype · 玩家自己安排这一天</div>
+    </div>
+    <div class="stats" id="stats"></div>
+  </div>
+
+  <div class="layout">
+    <div class="panel"><div class="scene" id="scene"></div></div>
+    <div class="side">
+      <div class="box"><h4>时间 / 地点</h4><div class="money" id="timePlace">08:00</div><div class="item" id="placeLabel">未进入世界</div></div>
+      <div class="box"><h4>钱包</h4><div class="money" id="cash">$180</div></div>
+      <div class="box"><h4>当前状态</h4><div id="status"></div></div>
+      <div class="box"><h4>背包</h4><div class="inventory" id="inventory"></div></div>
+      <div class="box"><h4>关系 / 记忆</h4><div id="relations"></div></div>
+      <div class="box"><h4>隐藏数据（原型调试）</h4><div id="hidden"></div></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    本版重点从“剧情播放器”改成“自由行动 + NPC 自己生活 + 动态事件”。诺拉暂不加入；先把米洛与公寓生活跑起来。成人路线只保留系统变量，不包含露骨正文。
+  </div>
+</div>
+<script>
+const S={
+  day:1, minutes:480, location:'bedroom', mode:'creation',
+  player:{name:'',gender:'',body:'',expression:'',orientation:'',age:'成年',clean:'中等',schedule:'普通',noise:'中等',gaming:false,social:'中等',background:'普通租客'},
+  cash:180,
+  landlordName:'艾德里安·韦尔', landlordTrust:0, landlordFriction:0,
+  milo:{
+    familiarity:0,trust:0,tension:0,gameBond:0,likedGift:false,
+    height:189,skin:'小麦色',bodyType:'高壮运动型',tattoo:true,
+    lazy:85,messy:88,noisy:75,snoring:95,gaming:90,sports:78,bar:72,prank:88,swearing:82,
+    lookDriven:86,sexualOpenness:74,boundaryRespect:46,
+    knownForTrouble:true,hasFriendCircle:true,
+    scheduleNote:'会根据时间自己行动；不是站桩 NPC。'
+  },
+  tuantuan:{met:false,familiarity:0},
+  adultOn:true, adultExposure:0,
+  energy:100,
+  memories:[], contacts:[], items:{sandwich:1,drink:1,gamepad:0,gift:0},
+  flags:{worked:false,shop:false,gifted:false,prank:false,waterSeen:false,landlordAsked:false,miloNoise:false,tuantuanMet:false,anomalySeen:false,day1Ended:false,metMilo:false,introDone:false,morningMiloDone:false},
+  logs:[],dynamicCooldown:0
+};
+
+const money=n=>`$${n}`;
+const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+const pad=n=>String(n).padStart(2,'0');
+function timeString(){const h=Math.floor(S.minutes/60),m=S.minutes%60;return `${pad(h)}:${pad(m)}`}
+function esc(x){return String(x).replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\\':'&#92;','"':'&quot;'}[m]||m));}
+function addMemory(m){if(!S.memories.includes(m))S.memories.push(m)}
+function log(m){S.logs.unshift(`${timeString()} · ${m}`);S.logs=S.logs.slice(0,18)}
+function addCash(n,reason){S.cash=Math.max(0,S.cash+n);if(reason)log(`${n>=0?'+':''}${money(n)} · ${reason}`)}
+function addItem(k,n=1){S.items[k]=(S.items[k]||0)+n}
+function rel(n,type='familiarity'){S.milo[type]=clamp((S.milo[type]||0)+n,0,100)}
+function locName(){return ({bedroom:'你的房间',living:'客厅',kitchen:'厨房',hall:'走廊',convenience:'便利店',cafe:'咖啡店',street:'街道'})[S.location]||S.location}
+function miloActivity(){
+  const h=Math.floor(S.minutes/60);
+  if(h<9) return '还在睡觉（而且大概率已经开始打呼噜）';
+  if(h<11) return '在厨房找吃的 / 磨蹭 / 看手机';
+  if(h<14) return '在房间打游戏';
+  if(h<17) return '出去运动或和兄弟碰面';
+  if(h<20) return '在外面鬼混，偶尔回公寓拿东西';
+  if(h<23) return '回到公寓打游戏、吃东西、制造噪音';
+  return '睡着了；夜里会打呼噜';
+}
+function availableLocations(){
+  return [
+    ['bedroom','你的房间','休息、手机、整理、查看 Memory'],
+    ['living','客厅',`公共区域；米洛状态：${miloActivity()}`],
+    ['kitchen','厨房','吃东西、翻冰箱、观察室友留下的痕迹'],
+    ['hall','走廊','看门、偷听、观察 NPC 是否经过'],
+    ['convenience','便利店','购物、短班工作'],
+    ['cafe','咖啡店','坐着休息、偶遇 NPC、观察城市'],
+    ['street','街道','探索、移动、随机遇到人']
+  ];
+}
+function dynamicHint(){
+  const h=Math.floor(S.minutes/60);
+  if(S.location==='living' && h>=20 && h<23 && !S.flags.miloNoise) return '客厅电视声音很大。米洛应该就在附近。';
+  if(S.location==='hall' && h>=22) return '走廊里很安静。隔壁房门底下还有光。';
+  if(S.location==='kitchen' && h>=8 && h<11) return '有人刚刚打开过冰箱，门还没有完全关严。';
+  if(S.location==='street' && h>=17) return '远处一群年轻人经过，其中有人看起来和米洛很熟。';
+  return '城市暂时没有明显异常。';
+}
+function renderSide(){
+  document.getElementById('cash').textContent=money(S.cash);
+  document.getElementById('timePlace').textContent=timeString();
+  document.getElementById('placeLabel').textContent=locName();
+  document.getElementById('stats').innerHTML=[`DAY ${S.day}`,`体力 ${S.energy}`,`米洛 ${S.milo.familiarity}`,`成人 ${S.adultOn?'ON':'OFF'}`,`自由行动`].map(x=>`<span class="pill">${esc(x)}</span>`).join('');
+  document.getElementById('status').innerHTML=
+    `<div class="item"><b>${esc(S.player.name||'未命名')}</b> · ${esc(S.player.background||'')}</div>`+
+    `<div class="item">作息：${esc(S.player.schedule)} · 整洁：${esc(S.player.clean)}</div>`+
+    `<div class="item">噪音容忍：${esc(S.player.noise)} · 游戏：${S.player.gaming?'喜欢':'一般'}</div>`+
+    `<div class="item">体力</div><div class="meter"><div style="width:${clamp(S.energy,0,100)}%"></div></div>`;
+  const inv=[['三明治','sandwich'],['饮料','drink'],['游戏手柄','gamepad'],['搞笑礼物','gift']];
+  document.getElementById('inventory').innerHTML=inv.map(([label,k])=>`<div class="invrow"><span>${label}</span><b>x${S.items[k]||0}</b></div>`).join('');
+  document.getElementById('relations').innerHTML=
+    `<div class="item"><b>房东</b>：${S.landlordTrust}</div>`+
+    `<div class="item"><b>米洛</b>：熟悉 ${S.milo.familiarity} · 信任 ${S.milo.trust} · 张力 ${S.milo.tension}</div>`+
+    `<div class="item"><b>绒团团</b>：${S.tuantuan.met?'已见过':'未见'}</div>`+
+    `<div class="item" style="margin-top:8px"><b>最新 Memory</b></div>`+
+    (S.memories.slice(-6).reverse().map(m=>`<div class="item">• ${esc(m)}</div>`).join('')||'<div class="item muted">暂无</div>');
+  document.getElementById('hidden').innerHTML=
+    `<div class="item">米洛：189cm · ${esc(S.milo.skin)} · ${esc(S.milo.bodyType)}</div>`+
+    `<div class="item">生活习惯：懒 ${S.milo.lazy} / 乱 ${S.milo.messy} / 脏话 ${S.milo.swearing}</div>`+
+    `<div class="item">兴趣：游戏 ${S.milo.gaming} / 运动 ${S.milo.sports} / 酒吧 ${S.milo.bar}</div>`+
+    `<div class="item">看脸 ${S.milo.lookDriven} / 性开放 ${S.milo.sexualOpenness}</div>`+
+    `<div class="item">成人行业接触：${S.adultExposure}</div>`+
+    `<div class="item">最近动态：${esc(miloActivity())}</div>`+
+    `<div class="item">系统日志</div>`+
+    `${S.logs.slice(0,5).map(x=>`<div class="item muted">• ${esc(x)}</div>`).join('')}`;
+}
+function scene(tag,speaker,text,choices=[]){
+  const el=document.getElementById('scene');
+  el.innerHTML=`<div class="tag">${esc(tag)}</div><div class="speaker">${speaker?esc(speaker):''}</div><div class="text">${esc(text)}</div><div class="choices" id="choices"></div>`;
+  const c=document.getElementById('choices');
+  choices.forEach(ch=>{const b=document.createElement('button');b.className='choice';b.textContent=ch.label;b.onclick=ch.onClick;if(ch.disabled)b.disabled=true;c.appendChild(b)});
+  renderSide();
+}
+function start(){
+  scene('START · CHARACTER CREATION','—',`这版先不追求大地图。
+
+先把一个真正会动的 Day 1 跑起来：你自己安排时间、去不同地点、和环境互动；NPC 也会自己行动。
+
+你不会一直被“下一段剧情”牵着走。`,[{label:'开始创角',onClick:characterSetup}]);
+}
+function characterSetup(){
+  const el=document.getElementById('scene');
+  el.innerHTML=`<div class="tag">Character Creation</div><div class="speaker">你的新生活</div>
+  <div class="field"><label>名字</label><input id="pname" value="Alex" maxlength="20"></div>
+  <div class="grid2">
+    <div class="field"><label>性别身份</label><select id="gender"><option>男性</option><option>女性</option><option>非二元</option><option>自定义</option><option>不说明</option></select></div>
+    <div class="field"><label>身体特征</label><select id="body"><option>男性身体</option><option>女性身体</option><option>双性身体</option><option>自定义</option></select></div>
+    <div class="field"><label>性别表达</label><select id="expr"><option>中性</option><option>阳刚</option><option>阴柔</option><option>自定义</option></select></div>
+    <div class="field"><label>性取向</label><select id="ori"><option>异性恋</option><option>同性恋</option><option>双性恋</option><option>泛性恋</option><option>无性恋</option><option>自定义</option></select></div>
+    <div class="field"><label>出身</label><select id="bg"><option>普通租客</option><option>小康家庭</option><option>富裕家庭</option><option>经济困难</option><option>学生/刚毕业</option><option>社交型</option><option>独来独往</option></select></div>
+    <div class="field"><label>整洁程度</label><select id="clean"><option>低</option><option selected>中等</option><option>高</option><option>极高</option></select></div>
+    <div class="field"><label>作息</label><select id="schedule"><option>早起</option><option selected>普通</option><option>夜猫子</option></select></div>
+    <div class="field"><label>噪音容忍</label><select id="noise"><option>低</option><option selected>中等</option><option>高</option></select></div>
+  </div>
+  <div class="card"><h3>兴趣</h3><button id="gameBtn" class="option" type="button" style="width:100%"><div class="main">喜欢游戏</div><div class="desc">会影响和米洛的共同活动、部分对话与习惯互动。</div></button></div>
+  <div class="card"><h3>初始资源</h3><div class="small">普通开局：$180、三明治×1、饮料×1。出身只做轻微调整。</div></div>
+  <div style="margin-top:16px"><button class="primary" id="beginBtn">进入 DAY 1</button></div>`;
+  let game=false;document.getElementById('gameBtn').onclick=()=>{game=!game;document.getElementById('gameBtn').classList.toggle('selected',game)};
+  document.getElementById('beginBtn').onclick=()=>{
+    S.player.name=document.getElementById('pname').value||'Alex';S.player.gender=document.getElementById('gender').value;S.player.body=document.getElementById('body').value;S.player.expression=document.getElementById('expr').value;S.player.orientation=document.getElementById('ori').value;S.player.background=document.getElementById('bg').value;S.player.clean=document.getElementById('clean').value;S.player.schedule=document.getElementById('schedule').value;S.player.noise=document.getElementById('noise').value;S.player.gaming=game;adjustStartByBackground();apartmentArrival();
+  };
+  renderSide();
+}
+function adjustStartByBackground(){const bg=S.player.background;if(bg==='小康家庭')addCash(80,'出身资源');else if(bg==='富裕家庭')addCash(220,'出身资源');else if(bg==='经济困难')addCash(-60,'出身资源');else if(bg==='学生/刚毕业')addCash(-20,'出身资源');else if(bg==='独来独往')addCash(20,'出身资源')}
+function apartmentArrival(){
+  scene('DAY 1 · MOVING IN','—',`你把最后一只箱子拖上楼。
+
+走廊比你想象得安静。
+墙上的住户守则写得一丝不苟：
+“公共区域保持清洁。”
+“按时缴费。”
+“夜间十点后降低音量。”
+
+下面却有人用黑色水笔补了一句：
+“要是忍不了，就滚出去。”
+
+字写得很嚣张。`,[
+    {label:'先去按门铃，找房东',onClick:landlordIntro},
+    {label:'先敲旁边那扇门',onClick:miloDoorFirst},
+    {label:'先把箱子放下，自己进去',onClick:roomIntro}
+  ]);
+}
+function landlordIntro(){
+  scene('APARTMENT · LANDLORD','艾德里安·韦尔',`“你就是今天搬进来的那个？”
+
+他的第一眼先落在门口的鞋印上。
+
+“钥匙。”
+
+钥匙落进你手里。
+
+“房租按时。公共区域别弄脏。东西别堆走廊。”
+
+他顿了顿。
+
+“我不喜欢重复说第二遍。”
+
+他要走，又像想起什么似的回头：
+
+“还有——晚上如果听到什么声音，别来找我。”`,[
+    {label:'“知道了。”',onClick:()=>{S.landlordTrust+=1;addMemory('第一次见到房东：他极度在意整洁和规则。');landlordAfter}},
+    {label:'“什么声音？”',onClick:()=>{S.landlordTrust+=1;S.landlordFriction+=1;S.flags.landlordAsked=true;addMemory('房东警告过夜里的声音，但拒绝解释。');landlordAfter}},
+    {label:'“你这欢迎方式挺特别。”',onClick:()=>{S.landlordFriction+=1;addMemory('第一次见到房东：玩家觉得他很难相处。');landlordAfter}}
+  ]);
+}
+function landlordAfter(){scene('APARTMENT · HALL','—',`你拿着钥匙站在走廊。
+
+前面是你的房间。
+右边那扇门下漏着一点电视光。
+
+里面传来一声：
+
+“操——这都能输？！”
+
+隔了一秒，又是一个男声：
+
+“进呗。”
+
+但你还没敲门。`,[
+  {label:'敲米洛的门',onClick:miloDoorFirst},
+  {label:'直接进自己的房间',onClick:roomIntro},
+  {label:'先去厨房看看',onClick:()=>enterRoam('kitchen')}
+]);}
+function miloDoorFirst(){
+  S.location='hall';
+  scene('FIRST IMPRESSION · MILO','米洛',`门只关了一半。
+
+你敲了一下。
+
+里面的游戏声音停了。
+
+“进呗。”
+
+你推门。
+
+一个高得有点夸张的年轻男人半躺在沙发上，宽松 T 恤，手臂和肩膀的肌肉在灯下很明显。小麦色皮肤上露着一截龙纹身。
+
+他先看你一眼，再看你脚边的箱子。
+
+“新室友？”
+
+没有起身帮忙。
+
+他继续低头按手柄。
+
+“米洛。”
+
+两秒后，他又抬头：
+
+“你打游戏吗？”
+
+他的语气像是在问一件已经默认你会回答的问题。`,[
+   {label:'“会。”',onClick:()=>miloFirstResponse('game')},
+   {label:'“一般。”',onClick:()=>miloFirstResponse('neutral')},
+   {label:'“刚认识就问这个？”',onClick:()=>miloFirstResponse('pushback')},
+   {label:'“我先把箱子搬进去。”',onClick:()=>miloFirstResponse('busy')}
+  ]);
+}
+function miloFirstResponse(kind){
+  S.flags.metMilo=true;S.flags.introDone=true;rel(kind==='pushback'?0:2);if(kind==='pushback')S.milo.tension+=2;if(kind==='game')S.milo.gameBond+=1;
+  addMemory('第一次见米洛：189cm、高壮、小麦色皮肤、龙纹身、说话很欠。');
+  if(kind==='pushback') addMemory('玩家第一次没有顺着米洛的节奏，他明显记住了。');
+  scene('FIRST IMPRESSION · AFTER','米洛',`米洛看了你两秒。
+
+“行。”
+
+他把脚从茶几上放下来一点。
+
+“你随便。”
+
+然后又补了一句：
+
+“啊，对了。别把公共区搞得跟垃圾场一样。”
+
+他低头看了一眼自己身后的沙发。
+
+衣服、外卖袋、游戏盒、两只没收起来的鞋，乱成一团。
+
+你看了他一眼。
+
+他顺着你的视线看过去。
+
+“……我的地盘。”
+
+说完，他自己先笑了。`,[
+   {label:'“你自己都这么乱？”',onClick:()=>{rel(1);addMemory('玩家第一次吐槽米洛的房间和生活习惯。');enterRoam('living')}},
+   {label:'“行，那我不碰。”',onClick:()=>{S.milo.trust+=1;enterRoam('living')}},
+   {label:'“你刚才是不是在骂人？”',onClick:()=>{S.milo.tension+=1;scene('MILO · SWEARING','米洛',`“啊？
+
+我打游戏骂两句怎么了？”
+
+他一点没有要道歉的意思。
+
+“你以后习惯一下。”
+
+停了一下。
+
+“真受不了你就骂回来。”`,[{label:'“成交。”',onClick:()=>{rel(2);addMemory('米洛说过：受不了就骂回来。');enterRoam('living')}},{label:'“你真挺欠的。”',onClick:()=>{rel(1);S.milo.tension+=1;enterRoam('living')}}])}},
+   {label:'先不说，去放东西',onClick:()=>enterRoam('bedroom')}
+  ]);
+}
+function roomIntro(){
+  S.location='bedroom';
+  scene('ROOM · FIRST LOOK','—',`你的房间很普通。
+
+床、衣柜、书桌、一盏台灯。
+
+窗外能看到城市的另一条街。
+
+手机已经连上 Wi‑Fi。
+
+你还有 ${money(S.cash)}。
+
+你很清楚：不能一直靠这点钱过日子。`,[
+    {label:'开始自由行动',onClick:()=>openRoam('bedroom')},
+    {label:'先去厨房',onClick:()=>enterRoam('kitchen')},
+    {label:'先去客厅',onClick:()=>enterRoam('living')}
+  ]);
+}
+function enterRoam(loc,advance=0){
+  if(advance>0) advanceTime(advance,false);
+  S.location=loc;
+  openRoam(loc);
+}
+function openRoam(loc=S.location,notice=''){
+  S.mode='roam';S.location=loc;
+  const data={bedroom:['你的房间','这里是你自己的地盘。'],living:['客厅','公共区。也是米洛最常霸占的地方。'],kitchen:['厨房','冰箱、餐桌、垃圾桶，以及一堆室友留下的痕迹。'],hall:['走廊','几扇关着的门；你开始知道这栋房子并不总是安静。'],convenience:['便利店','可以买便宜食物，也能接短班。'],cafe:['咖啡店','适合休息、观察路人、偶遇城市 NPC。'],street:['街道','城市比你想象得更大。今天先看看附近。']}[loc];
+  const actions=actionsForLocation(loc);
+  const locations=availableLocations();
+  const actionHTML=actions.map((a,i)=>`<button class="action" ${a.disabled?'disabled':''} data-action-index="${i}"><div class="a-title">${esc(a.title)}</div><div class="a-cost">${esc(a.cost||'')}</div></button>`).join('');
+  const locHTML=locations.map(l=>`<button class="loc" data-loc="${l[0]}"><div class="name">${esc(l[1])}</div><div class="desc">${esc(l[2])}</div></button>`).join('');
+  const hint=notice||dynamicHint();
+  const noteClass=hint.includes('异常')?'notice danger-note':'notice';
+  const el=document.getElementById('scene');
+  el.innerHTML=`<div class="tag">FREE ROAM · ${esc(timeString())}</div><div class="speaker">${esc(data[0])}</div><div class="text">${esc(data[1])}</div><div class="${noteClass}">${esc(hint)}</div><div class="card"><h3>现在这里能做什么</h3><div class="action-grid">${actionHTML}</div></div><div class="card"><h3>去哪里</h3><div class="location-grid">${locHTML}</div></div><div class="toolbar"><button class="choice" data-rest>暂时什么都不做（消耗一点时间）</button><button class="choice" data-phone>看手机 / Memory</button></div>`;
+  actions.forEach((a,i)=>{const b=el.querySelector(`[data-action-index="${i}"]`);if(b&&!a.disabled)b.onclick=a.onClick});
+  el.querySelectorAll('[data-loc]').forEach(b=>b.onclick=()=>moveTo(b.dataset.loc));
+  el.querySelector('[data-rest]').onclick=()=>advanceTime(30,true);
+  el.querySelector('[data-phone]').onclick=phoneView;
+  renderSide();
+}
+function actionsForLocation(loc){
+  const h=Math.floor(S.minutes/60);
+  if(loc==='bedroom') return [
+    {title:'整理房间',cost:'+10 整洁感 · 15分钟',onClick:()=>doAction('整理房间',15,-2,()=>addMemory('Day 1：玩家认真整理了自己的房间。'))},
+    {title:'刷手机',cost:'15分钟 · 可能收到消息',onClick:phoneView},
+    {title:'睡一会儿',cost:'60分钟 · +25体力',onClick:()=>{advanceTime(60,false);S.energy=clamp(S.energy+25,0,100);log('睡了一小时');maybeEvent(true);openRoam('bedroom')}}
+  ];
+  if(loc==='living') return [
+    {title:'观察米洛',cost:`10分钟 · ${miloActivity()}`,onClick:observeMilo,disabled:!S.flags.metMilo},
+    {title:'和米洛说话',cost:'20分钟 · 当前地点才会遇到他',onClick:talkMilo,disabled:!S.flags.metMilo || (h>=14&&h<18)},
+    {title:'一起打游戏',cost:'45分钟 · 需要相对熟悉',onClick:playMilo,disabled:!S.flags.metMilo || S.milo.familiarity<2},
+    {title:'恶作剧：藏他的东西',cost:'15分钟 · 可能触发反击',onClick:prankNow,disabled:!S.flags.metMilo},
+    {title:'收拾一下公共区',cost:'20分钟 · 米洛可能吐槽你',onClick:cleanLiving}
+  ];
+  if(loc==='kitchen') return [
+    {title:'打开冰箱',cost:'5分钟 · 看看谁动过',onClick:inspectFridge},
+    {title:'吃三明治',cost:'15分钟 · -1三明治 · +15体力',onClick:()=>useItem('sandwich',15)},
+    {title:'喝饮料',cost:'10分钟 · -1饮料 · +8体力',onClick:()=>useItem('drink',8)},
+    {title:'找米洛的零食',cost:'5分钟 · 风险自负',onClick:stealSnack,disabled:!S.flags.metMilo}
+  ];
+  if(loc==='hall') return [
+    {title:'敲米洛的门',cost:'10分钟',onClick:()=>{if(!S.flags.metMilo){miloDoorFirst()}else talkMilo()}},
+    {title:'偷听隔壁动静',cost:'10分钟 · 有时什么都没有',onClick:listenHall},
+    {title:'查看住户公告',cost:'5分钟 · 城市小信息',onClick:noticeBoard}
+  ];
+  if(loc==='convenience') return [
+    {title:'买饮料 $8',cost:'获得1饮料',onClick:()=>buy('drink',8)},
+    {title:'买三明治 $12',cost:'获得1三明治',onClick:()=>buy('sandwich',12)},
+    {title:'买游戏手柄 $35',cost:'米洛可能很喜欢',onClick:()=>buy('gamepad',35)},
+    {title:'买搞笑礼物 $20',cost:'不一定讨喜',onClick:()=>buy('gift',20)},
+    {title:'接便利店短班',cost:'90分钟 · +$45 · -18体力',onClick:workShift,disabled:S.flags.worked}
+  ];
+  if(loc==='cafe') return [
+    {title:'买咖啡 $6',cost:'+10体力 · 20分钟',onClick:()=>buyCoffee()},
+    {title:'坐着观察',cost:'30分钟 · 可能遇到 NPC',onClick:()=>{advanceTime(30,false);log('在咖啡店观察路人');randomCityEncounter();openRoam('cafe')}},
+    {title:'看城市消息',cost:'10分钟 · 可能看到米洛朋友的信息',onClick:cityFeed}
+  ];
+  if(loc==='street') return [
+    {title:'散步',cost:'30分钟 · -4体力',onClick:()=>{advanceTime(30,false);S.energy=clamp(S.energy-4,0,100);log('在街上散步');randomCityEncounter();openRoam('street')}},
+    {title:'去便利店',cost:'15分钟',onClick:()=>moveTo('convenience')},
+    {title:'去咖啡店',cost:'15分钟',onClick:()=>moveTo('cafe')},
+    {title:'观察远处那群人',cost:'15分钟 · 可能和米洛有关',onClick:observeMiloFriends}
+  ];
+  return [];
+}
+function moveTo(loc){
+  const travel=(loc==='street'||S.location==='street')?15:10;
+  if(loc===S.location){openRoam(loc);return}
+  advanceTime(travel,false);
+  S.location=loc;log(`移动到${locName()}`);maybeEvent(false);openRoam(loc);
+}
+function doAction(name,mins,energyCost,fn){advanceTime(mins,false);S.energy=clamp(S.energy+energyCost,0,100);log(name);fn&&fn();maybeEvent(true);openRoam(S.location)}
+function useItem(k,energyGain){if((S.items[k]||0)<=0){alert('没有这个东西了。');return}S.items[k]--;advanceTime(k==='sandwich'?15:10,false);S.energy=clamp(S.energy+energyGain,0,100);log(`使用：${k}`);openRoam(S.location)}
+function phoneView(){
+  const el=document.getElementById('scene');
+  el.innerHTML=`<div class="tag">PHONE</div><div class="speaker">手机</div><div class="text">你现在没有必要去追着剧情跑。
+
+手机更像一个生活工具：消息、联系人、Memory、地图，都可以自己查看。</div><div class="card"><h3>Memory</h3>${S.memories.length?S.memories.map(m=>`<div class="item">• ${esc(m)}</div>`).join(''):'<div class="item muted">暂无 Memory</div>'}</div><div class="card"><h3>最近消息</h3><div class="item">房东：按时交房租。</div>${S.flags.metMilo?'<div class="item">米洛：你去哪了？</div>':''}${S.logs.filter(x=>x.includes('米洛')).slice(0,3).map(x=>`<div class="item">• ${esc(x)}</div>`).join('')}</div><div class="choices"><button class="choice" id="phoneBack">回到行动</button></div>`;
+  document.getElementById('phoneBack').onclick=()=>openRoam(S.location);
+  renderSide();
+}
+function noticeBoard(){scene('HALL · NOTICE BOARD','—',`住户公告今天多了一张新的：
+
+“夜间请保持安静。”
+
+下面有人补了一句：
+
+“先管好那个打游戏的。”
+
+字迹很潦草。`,[{label:'回去',onClick:()=>openRoam('hall')}]);}
+function inspectFridge(){
+  const base=`冰箱里目前有：\n\n三明治 × ${S.items.sandwich}\n饮料 × ${S.items.drink}\n\n米洛那一侧明显堆得更多。`;
+  if(Math.floor(S.minutes/60)<11 && !S.flags.anomalySeen){
+    scene('KITCHEN · FRIDGE','—',`${base}\n\n最里面有一瓶水。\n瓶身贴着一张标签。\n\n【${S.player.name}】\n\n你今天才搬进来。`,[
+      {label:'拿起来看',onClick:waterAnomaly},
+      {label:'不碰',onClick:()=>openRoam('kitchen')}
+    ]);return;
+  }
+  scene('KITCHEN · FRIDGE','—',base,[{label:'回到厨房',onClick:()=>openRoam('kitchen')}]);
+}
+function waterAnomaly(){
+  S.flags.anomalySeen=true;S.flags.waterSeen=true;addMemory('玩家在自由探索中发现一瓶写着自己名字的水。');
+  scene('ANOMALY · WATER','—',`你拿起那瓶水。
+
+它是冰的。
+
+你确定今天没有人知道你的名字。`,[
+    {label:'拿去问米洛',onClick:askMiloAboutWater},
+    {label:'拍照后放回去',onClick:()=>{addMemory('玩家拍下异常水瓶，没有立刻喝。');openRoam('kitchen')}},
+    {label:'喝一口',onClick:()=>{addMemory('玩家喝了那瓶写着自己名字的水。');scene('ANOMALY · DRINK','—','味道很普通。\n\n没有任何事情发生。',[{label:'回到自由行动',onClick:()=>openRoam('kitchen')}])}}
+  ]);
+}
+function askMiloAboutWater(){scene('ANOMALY · MILO','米洛',`“不是我的。”
+
+他盯着瓶身看了一秒。
+
+“……你从哪找到的？”
+
+你问他："你以前见过这种东西？"
+
+米洛没立刻回答。
+
+“别在晚上一个人乱翻房子。”
+
+他说完就拿回了自己的手柄。`,[
+  {label:'继续追问',onClick:()=>{S.milo.tension+=2;addMemory('米洛在看到异常水瓶时明显回避了问题。');openRoam('kitchen')}},
+  {label:'算了',onClick:()=>openRoam('kitchen')}
+]);}
+function observeMilo(){
+  scene('MILO · LIVING ROOM','米洛',`米洛正半躺在沙发上打游戏。
+
+你的第一反应是：这人真的很懒。
+
+茶几上有饮料，沙发边有运动包，地上还有没收起来的衣服。
+
+他的手机不断跳消息。
+
+其中一条来自“阿凯”：
+“今晚去不去？”
+
+米洛回：
+“看我心情。”`,[
+    {label:'“你一天到底在忙什么？”',onClick:talkMilo},
+    {label:'默默看一眼他的运动包',onClick:()=>{rel(1);addMemory('玩家注意到米洛虽然很懒，但确实保持运动习惯。');openRoam('living')}},
+    {label:'不打扰',onClick:()=>openRoam('living')}
+  ]);
+}
+function talkMilo(){
+  const h=Math.floor(S.minutes/60);
+  let text='米洛抬头。\n\n“怎么？”';
+  if(h>=20&&h<23) text='米洛正在打游戏。\n\n“等下。”\n\n他骂了一句队友，又把声音压低。\n\n“现在说。”';
+  else if(h>=14&&h<18) text='米洛不在客厅。\n\n你只收到一个语音：\n\n“我在外面，咋了？”';
+  scene('MILO · CHAT','米洛',text,[
+    {label:'“你平时都和谁混？”',onClick:()=>{rel(1);scene('MILO · FRIEND CIRCLE','米洛',`“就那几个。”\n\n“阿凯、老陈、杰森……你见过也会认识。”\n\n“有空带你去酒吧。”\n\n他说完又补：\n\n“不过先说好，他们嘴比我还欠。”`,[{label:'“听起来不太靠谱。”',onClick:()=>{rel(1);addMemory('米洛第一次提起固定兄弟圈。');openRoam(S.location)}},{label:'“行。”',onClick:()=>{rel(2);addMemory('玩家答应以后认识米洛的兄弟。');openRoam(S.location)}}])}},
+    {label:'“你是不是很爱搞事情？”',onClick:()=>{rel(1);scene('MILO · TROUBLE','米洛',`他笑了。
+
+“被你发现了？”
+
+“闲着也是闲着。”
+
+他的手机又震了一下。
+
+屏幕上是一条模糊的消息：
+“今晚那事还去不去？”
+
+米洛看了一眼，直接扣下手机。`,[{label:'“什么事？”',onClick:()=>{S.milo.tension+=1;addMemory('米洛收到一条不太像普通聚会的消息。');openRoam(S.location)}},{label:'不问',onClick:()=>openRoam(S.location)}])}},
+    {label:'“你真的很懒。”',onClick:()=>{rel(1);scene('MILO · LAZY','米洛',`“我知道。”\n\n“能躺为什么站？”\n\n他说着，伸手去拿掉在地上的饮料。\n\n够不着。\n\n他沉默两秒。\n\n“……你帮我拿一下。”`,[{label:'拿给他',onClick:()=>{rel(1);openRoam(S.location)}},{label:'“你自己滚过去拿。”',onClick:()=>{S.milo.tension+=1;rel(1);openRoam(S.location)}}])}},
+    {label:'回去行动',onClick:()=>openRoam(S.location)}
+  ]);
+}
+function playMilo(){
+  advanceTime(45,false);S.energy=clamp(S.energy-8,0,100);S.milo.gameBond+=2;rel(2);addMemory('玩家与米洛第一次在自由探索中一起打游戏。');
+  scene('MILO · GAMING','米洛',`你们连打了两局。
+
+第一局米洛输了。
+
+“操，队友有病。”
+
+第二局他赢了。
+
+他得意得像刚拿了冠军。
+
+“看见没？”
+
+然后他把手柄塞给你：
+
+“再来。”`,[
+    {label:'继续打',onClick:()=>{advanceTime(30,false);S.energy=clamp(S.energy-6,0,100);rel(1);openRoam('living')}},
+    {label:'“不玩了。”',onClick:()=>openRoam('living')}
+  ]);
+}
+function prankNow(){
+  advanceTime(15,false);S.flags.prank=true;rel(1);addMemory('玩家在自由探索中第一次恶作剧米洛。');
+  scene('PRANK · MILO','米洛',`你把他的一个小东西藏起来。
+
+不到一分钟。
+
+“……”
+
+米洛转头看你。
+
+“你干的？”
+
+他的嘴角已经翘起来了。`,[
+    {label:'承认',onClick:()=>{S.milo.trust+=1;scene('PRANK · RESPONSE','米洛',`“行。”
+
+“那你最好把自己的东西看好了。”
+
+他笑得很开心。\n\n“我记仇。”`,[{label:'继续行动',onClick:()=>openRoam('living')}])}},
+    {label:'装无辜',onClick:()=>{S.milo.tension+=2;scene('PRANK · RESPONSE','米洛',`“呵。”
+
+“行。”
+
+他没拆穿你。
+
+但你突然觉得自己的手机可能不安全了。`,[{label:'继续行动',onClick:()=>openRoam('living')}])}}
+  ]);
+}
+function cleanLiving(){
+  advanceTime(20,false);addMemory('玩家第一次收拾公共区。');
+  scene('LIVING ROOM · CLEANING','米洛',`你把公共区收了一点。
+
+米洛在旁边看着。
+
+“你认真的？”
+
+他环顾四周。
+
+“……好吧。”
+
+“看起来确实舒服点。”
+
+他自己却没有起身帮忙。`,[{label:'“至少你承认了。”',onClick:()=>{rel(1);openRoam('living')}},{label:'“你也来收。”',onClick:()=>{S.milo.tension+=1;rel(1);openRoam('living')}}]);
+}
+function stealSnack(){
+  advanceTime(5,false);S.milo.tension+=2;addMemory('玩家第一次偷吃米洛的东西。');
+  scene('KITCHEN · BAD IDEA','—',`你找到一包看起来很贵的零食。
+
+包装上甚至贴着米洛的名字缩写。
+
+你吃了一口。`,[{label:'继续吃',onClick:()=>{rel(-1);openRoam('kitchen')}},{label:'算了，放回去',onClick:()=>openRoam('kitchen')}]);
+}
+function listenHall(){
+  advanceTime(10,false);
+  const h=Math.floor(S.minutes/60);
+  if(h>=22){addMemory('夜里，玩家在走廊听见米洛的呼噜声。');scene('HALL · LISTENING','—','走廊很安静。\n\n你把耳朵贴近门边。\n\n“呼——”\n\n停两秒。\n\n“呼噜噜……”\n\n米洛居然已经睡了。',[{label:'回去',onClick:()=>openRoam('hall')}]);}
+  else scene('HALL · LISTENING','—','没有什么特别的。\n\n隔壁有人走动，楼下有人关门。',[{label:'回去',onClick:()=>openRoam('hall')}]);
+}
+function workShift(){
+  if(S.flags.worked){alert('今天已经做过这份短班。');return}
+  S.flags.worked=true;advanceTime(90,false);S.energy=clamp(S.energy-18,0,100);addCash(45,'完成便利店短班');addMemory('Day 1：第一次靠工作赚到钱。');openRoam('convenience','工作结束。你现在有了一点更安全的钱，但也少了一个半小时。');
+}
+function buy(k,cost){if(S.cash<cost){alert('钱不够。');return}addCash(-cost,'购物');addItem(k,1);S.flags.shop=true;log(`购买：${k}`);openRoam('convenience','买到了。你可以继续探索，也可以回公寓看看米洛。')}
+function buyCoffee(){if(S.cash<6){alert('钱不够。');return}addCash(-6,'咖啡');advanceTime(20,false);S.energy=clamp(S.energy+10,0,100);log('喝了一杯咖啡');randomCityEncounter();openRoam('cafe')}
+function cityFeed(){scene('CITY · FEED','手机',`附近群聊里有一条：\n\n“晚上酒吧？”\n\n另一个人回：\n“米洛来不来？”\n\n看来他在这里确实有自己的圈子。`,[{label:'回去',onClick:()=>openRoam('cafe')}]);}
+function randomCityEncounter(){
+  const r=Math.random();
+  if(r<0.35 && S.flags.metMilo){addMemory('城市里偶尔有人会主动提到米洛的名字。');
+    scene('CITY · ENCOUNTER','路人',`一个路过的人看了你一眼。
+
+“你是不是和米洛住一起？”
+
+他笑了笑，也没解释自己为什么认识这个名字。`,[{label:'“是。”',onClick:()=>openRoam(S.location)},{label:'“你认识他？”',onClick:()=>{addMemory('陌生人知道米洛，但没有解释自己和他的关系。');openRoam(S.location)}}]);return}
+  if(r>0.82){scene('CITY · SMALL EVENT','—','一辆很吵的车从街口掠过去。\n\n你下意识看了一眼。\n\n车上有人冲你按了一下喇叭。',[{label:'继续',onClick:()=>openRoam(S.location)}]);}
+}
+function observeMiloFriends(){
+  advanceTime(15,false);addMemory('玩家第一次在街上远远看到米洛的固定兄弟圈。');
+  scene('CITY · MILO FRIEND CIRCLE','—',`街对面有几个人。
+
+其中一个很高，另一个一直在笑。
+
+米洛就在里面。
+
+他和在公寓里完全不一样——更吵、更自在，也更像那个从小就有人跟着他的男生。
+
+其中一个人发现了你。\n\n“米洛，你室友？”`,[
+    {label:'走过去',onClick:()=>{rel(1);scene('MILO · FRIENDS','米洛',`“哟。”
+
+米洛转头。
+
+“你怎么跑这来了？”
+
+旁边的人笑了一下。
+
+“你室友看起来比你正常。”
+
+米洛：“放屁。”`,[{label:'留下和他们待会儿',onClick:()=>{advanceTime(30,false);addMemory('玩家第一次和米洛的朋友们见面。');openRoam('street')}},{label:'回去',onClick:()=>openRoam('street')}])}},
+    {label:'远远看看就走',onClick:()=>openRoam('street')}
+  ]);
+}
+function dynamicEventPool(){
+  const h=Math.floor(S.minutes/60);
+  const pool=[];
+  if(S.flags.metMilo && S.location==='living' && h>=20 && h<23 && !S.flags.miloNoise) pool.push(miloNoiseEvent);
+  if(S.flags.metMilo && S.location==='living' && h>=18 && h<21 && Math.random()<0.25) pool.push(miloBarInviteEvent);
+  if(S.flags.metMilo && S.location==='hall' && h>=22 && !S.flags.day1Ended) pool.push(snoreEvent);
+  return pool;
+}
+function maybeEvent(force=false){
+  if(S.dynamicCooldown>0){S.dynamicCooldown--;return}
+  const pool=dynamicEventPool();
+  if(!pool.length)return;
+  if(!force && Math.random()>0.45)return;
+  const fn=pool[Math.floor(Math.random()*pool.length)];S.dynamicCooldown=2;fn();
+}
+function miloNoiseEvent(){
+  S.flags.miloNoise=true;addMemory('动态事件：米洛又把游戏声音开大了。');
+  scene('DYNAMIC EVENT · MILO','米洛',`电视声音突然又大起来。
+
+“操——这波真不是我的问题。”
+
+他骂完还笑。
+
+显然，他又忘了自己答应过要小声。`,[
+    {label:'过去提醒他',onClick:()=>{rel(1);scene('MILO · RESPONSE','米洛','“哦，操，忘了。”\n\n他把音量调低。\n\n“行了吧？”',[{label:'“行。”',onClick:()=>openRoam(S.location)}])}},
+    {label:'敲墙',onClick:()=>{S.milo.tension+=1;addMemory('玩家用敲墙回应了米洛的噪音。');openRoam(S.location)}},
+    {label:'不管',onClick:()=>openRoam(S.location)}
+  ]);
+}
+function miloBarInviteEvent(){
+  scene('DYNAMIC EVENT · MESSAGE','米洛',`米洛手机震了一下。
+
+“今晚去一趟。”
+
+他抬头看你。
+
+“我要和几个兄弟出去。”
+
+“你要不要一起？”`,[
+    {label:'“去。”',onClick:()=>{rel(2);addMemory('米洛第一次主动邀请玩家加入他的兄弟圈。');scene('MILO · NIGHT OUT','米洛',`“行。”\n\n“那你先别睡。”\n\n“我回来叫你。”`,[{label:'继续',onClick:()=>openRoam('living')}])}},
+    {label:'“不了。”',onClick:()=>{rel(0);addMemory('玩家第一次拒绝米洛的夜间邀请。');openRoam(S.location)}}
+  ]);
+}
+function snoreEvent(){
+  addMemory('动态事件：夜里，米洛的呼噜声穿过了走廊。');
+  scene('DYNAMIC EVENT · SNORING','—',`走廊里传来：
+
+“呼——”
+
+停两秒。
+
+“呼噜噜……”
+
+这人的打呼噜声根本不像他的脸。`,[
+    {label:'敲一下门',onClick:()=>{rel(1);scene('MILO · HALF AWAKE','米洛','“……啊？”\n\n“几点了？”\n\n他说完翻身，又睡了。',[{label:'走开',onClick:()=>openRoam(S.location)}])}},
+    {label:'录下来',onClick:()=>{addMemory('玩家录下米洛第一次明显的打呼噜声。');openRoam(S.location)}},
+    {label:'忍着',onClick:()=>openRoam(S.location)}
+  ]);
+}
+function nightHook(){
+  S.flags.day1Ended=true;
+  scene('DAY 1 · LATE NIGHT','UNKNOWN CONTACT',`你准备睡了。
+
+手机突然亮了一下。
+
+【新消息】
+“第一天感觉怎么样？”
+
+你没有回复。
+
+第二条消息：
+“别担心。”
+“你以前也问过这个问题。”
+
+屏幕熄灭。`,[{label:'查看 Day 1 总结',onClick:summary},{label:'进入 Day 2 预览',onClick:day2Preview}]);
+}
+function tryEndDay(){
+  if(S.minutes<1320){
+    scene('DAY 1 · CHECK','—',`现在才 ${timeString()}。
+
+你还可以继续过这一天。
+
+如果你主动休息到深夜，就会触发 Day 1 的收束事件。`,[{label:'休息到 23:00',onClick:()=>{const d=1320-S.minutes;advanceTime(d,false);S.energy=clamp(S.energy+20,0,100);nightHook()}},{label:'回去探索',onClick:()=>openRoam(S.location)}]);
+  }else nightHook();
+}
+function summary(){
+  scene('DAY 1 · SUMMARY','系统',`今天不是一串被推着走的剧情。
+
+你自己安排了时间、移动、吃东西、工作、购物，甚至可能在米洛不知道的时候观察他的生活。
+
+你已经看到的核心：
+• 地点和时间会持续变化
+• 米洛有自己的作息和生活习惯
+• 选择会留下 Memory
+• 一些事件会自己发生，不需要你点“主线”
+• 你可以继续无视某些 NPC，也可以主动进入他们的生活
+
+钱包：${money(S.cash)}
+米洛：熟悉度 ${S.milo.familiarity} / 信任 ${S.milo.trust}
+房东：关系 ${S.landlordTrust}
+成人行业接触：${S.adultExposure}
+
+这只是 Day 1 沙盒骨架。`,[{label:'进入 Day 2 预览',onClick:day2Preview},{label:'重新开始',onClick:()=>location.reload()}]);
+}
+function day2Preview(){
+  scene('DAY 2 · PREVIEW','系统',`DAY 2 — SOMETHING IS WRONG
+
+接下来才加入诺拉。
+
+另外会继续扩：
+• NPC 日程真正独立运行
+• 米洛的兄弟圈有自己的活动
+• 城市随机事件池
+• 玩家习惯对室友的反向影响
+• 更复杂的 Memory / 关系后果
+• 七日异常逐步加深
+
+这版先把“可自由生活”做对。`,[{label:'重新体验 Day 1',onClick:()=>location.reload()}]);
+}
+
+start();
+</script>
+</body>
+</html>
