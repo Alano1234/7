@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>7 DAYS WITH YOUR ROOMMATE — V0.4</title>
+<title>7 DAYS WITH YOUR ROOMMATE — V0.5</title>
 <style>
 :root{
   --bg:#f4f0eb;--panel:#fffdf9;--panel2:#efe6dd;--ink:#292522;--muted:#847b74;
@@ -126,7 +126,7 @@ button{cursor:pointer}
 const KEY='7days_v04_engine';
 const state={
  name:'',day:1,slot:0,money:120,energy:5,oddity:0,location:'公寓',weather:'晴',
- rel:{milo:0,nora:0,unknown:0,bun:0},trust:{milo:0,nora:0,unknown:0},
+ rel:{milo:0,nora:0,unknown:0,bun:0},trust:{milo:0,nora:0,unknown:0},traits:{bold:0,kind:0,suspicious:0,chaos:0},
  inventory:[],memories:[],log:[],messages:[],flags:{},finished:false
 };
 const times=[['09:00','早晨'],['12:30','午后'],['16:30','傍晚前'],['20:00','晚上'],['00:10','深夜']];
@@ -163,7 +163,7 @@ function sheet(title,html,choices=[]){
  $('sheet').innerHTML=`<div class="mh"><h3>${title}</h3><button class="close" onclick="closeModal()">×</button></div>${html}`;
  if(choices.length){
    const wrap=document.createElement('div');wrap.className='choices';
-   choices.forEach(c=>{const b=document.createElement('button');b.className='choice';b.textContent=c[0];b.onclick=()=>{c[1]?.();save();closeModal();render()};wrap.appendChild(b)});
+   choices.forEach(c=>{const b=document.createElement('button');b.className='choice';b.textContent=c[0];b.onclick=()=>{const stay=c[1]?.()===false;save();if(!stay){closeModal();render()}};wrap.appendChild(b)});
    $('sheet').appendChild(wrap);
  }
  $('modal').classList.add('show');
@@ -181,17 +181,72 @@ function openIntro(){
 }
 function startGame(){state.name=($('nameInput').value||'你').trim();addLog('开始','你搬进这套公寓。房东说：先住一周，觉得合适，就继续住。');save();$('intro')?.remove();render();setTimeout(openPrologue,100)}
 function openPrologue(){
- sheet('PROLOGUE · 你为什么会住进这里？',`${sceneArt('公寓','搬进来的第一天','新的城市、新的钥匙、一周的临时住处。')}<div class="story">你把最后一个箱子放在门边。
+ sheet('PROLOGUE · 搬进来之前',`${sceneArt('公寓','门口 · 16:42','钥匙还带着一点房东手里的温度。')}<div class="story">你把最后一个箱子放在门边。
 
 房东说：“先住一周。觉得合适，就继续住。”
 
-听起来再普通不过。
+他说完就走了。
 
-可你还是有一种奇怪的感觉——像是自己并不是“找到”了这套房子，而是被它刚好接住了。</div>`,[
- ['我只是想换个环境',()=>{mem('你搬来这里，是因为想换个环境。')}],
- ['我本来就只打算住一周',()=>{mem('你一开始就没打算住很久。')}],
- ['我想离一些人远一点',()=>{mem('你没有告诉别人，你为什么想离开原来的生活。')}]
+你低头看了一眼手机。
+
+城市很安静。安静得有点过头。
+
+这是你第一次来这里。至少，你是这么记得的。</div>`,[
+  ['先看公寓规则。',()=>prologuePick('rule')===false],
+  ['先把东西搬进去。',()=>prologuePick('move')===false],
+  ['先看看楼下是什么样。',()=>prologuePick('street')===false]
  ]);
+}
+function prologuePick(kind){
+ state.flags.prologueChoice=kind;
+ state.traits=state.traits||{bold:0,kind:0,suspicious:0,chaos:0};
+ if(kind==='rule') state.traits.suspicious++;
+ if(kind==='move') state.traits.kind++;
+ if(kind==='street') state.traits.bold++;
+ const text={
+  rule:['你翻到冰箱旁边的住户须知。','第一条：公共区域晚上十一点后请保持安静。','第二条：如果厨房灯自己亮了，不要连续关三次。','第三条：不要问绒团团昨天发生了什么。','你盯着第三条看了两秒。','纸张右下角还有一行很小的字：','“新住户通常会忽略前两条。”'],
+  move:['你先把箱子拖进自己的房间。','房门里有一点木头和旧洗衣液的味道。','窗台放着一张别人留下来的便利贴：','“如果你看到一只会说话的兔子，不要大惊小怪。”','你看了看窗外。','暂时没有兔子。'],
+  street:['你决定先下楼。','楼下的城市比想象中热闹。','便利店、咖啡店、河岸方向的路标都在。','还有一块路牌：','“本街区异常事件请保持冷静。”','你站在那里看了三秒。','旁边路过的人完全没觉得这句话有什么问题。']
+ }[kind];
+ sheet('PROLOGUE · 你的第一反应',`${sceneArt('公寓',kind==='rule'?'住户须知':kind==='move'?'你的房间':'楼下街区',text[0])}<div class="story">${text.slice(1).join('\n\n')}</div>`,[
+  ['“先把这些记下来。”',()=>prologueFinish(kind,'记下来')===false],
+  ['“这地方还挺有意思。”',()=>prologueFinish(kind,'觉得有意思')===false],
+  ['“我是不是走错城市了？”',()=>prologueFinish(kind,'开始怀疑')===false]
+ ]);
+ return false;
+}
+function prologueFinish(kind,response){
+ const map={rule:'你认真记住了几条奇怪的规则。',move:'你决定先把自己的东西安顿好。',street:'你决定先把城市摸熟。'};
+ mem(map[kind]);
+ mem('第一印象：'+response+'。');
+ state.flags.prologueDone=true;
+ if(response==='开始怀疑') state.oddity+=1;
+ if(response==='觉得有意思') rel('bun',1);
+ addLog('第一印象',map[kind]);
+ sheet('PROLOGUE · 门终于关上了',`${sceneArt('公寓','你的房间 · 17:01','门合上的时候，你第一次觉得这里可能真的会住一阵子。')}<div class="story">你把钥匙放在桌上。
+
+手机亮了一下。
+
+<b>房东：</b>“对了，忘了提醒你。”
+
+“这套房子以前住过很多人。”
+
+下一条消息紧跟着出现：
+
+“不过最近几个月，只有两个人愿意住到第七天。”
+
+你还没来得及回复，门外传来轻轻的一声：
+
+“有人吗？”
+
+听声音，不像人。
+
+<b>Day 1 · 你的第一位室友，马上就要出现。</b></div>`,[
+   ['去开门。',()=>{state.flags.readyMilo=true;state.energy=Math.max(0,state.energy-1);mainEvent();return false}],
+   ['先不理，听一会儿。',()=>{state.flags.cautiousDoor=true;mem('第一天，你没有立刻回应门外的声音。');addLog('公寓','你没有马上开门。');return false}],
+   ['拿手机录像。',()=>{state.flags.recordDoor=true;addItem('门外录像');state.oddity+=1;return false}]
+ ]);
+ return false;
 }
 function nextSlot(){
  if(state.finished)return;
@@ -201,32 +256,127 @@ function nextSlot(){
  save();render();
 }
 function doAction(fn){fn()}
+function miloIntroBranch(style){
+ if(style==='拒绝'){state.traits.suspicious++;rel('milo',1);mem('第一次见米洛时，你没有立刻接受他的好意。');
+   sheet('米洛 · 第一印象',`${sceneArt('公寓','玄关','他把零食袋收回去，没有生气。反而笑得更明显了。')}<div class="story">“行。”米洛点头。
+
+“警惕性挺高。”
+
+他靠在门边。
+
+“你平时都这样？”
+
+你说不知道。
+
+他笑了。
+
+“那我慢慢看。”</div>`,[
+      ['“你也别太观察我。”',()=>miloIntroFinish('boundary')===false],
+      ['“随便你。”',()=>miloIntroFinish('cool')===false],
+      ['“你先告诉我这里有什么规矩。”',()=>miloIntroFinish('rules')===false]
+   ]);return false;
+ }
+ if(style==='接受'){state.traits.kind++;rel('milo',2);state.trust.milo++;mem('米洛给你的第一份欢迎礼是一袋他本来要自己吃的零食。');
+   sheet('米洛 · 第一印象',`${sceneArt('公寓','客厅','他明显满意了，把零食袋直接塞给你。')}<div class="story">“不错。”
+
+“第一条公寓潜规则——”
+
+他竖起一根手指。
+
+“谁先看到冰箱右边那格，谁先别动。”
+
+你问：“为什么？”
+
+米洛：“因为那是我的。”
+
+停顿。
+
+“第二条我还没想好。”</div>`,[
+      ['“那我现在就去看。”',()=>{state.traits.chaos++;rel('milo',2);return miloIntroFinish('chaos')}],
+      ['“好，记住了。”',()=>miloIntroFinish('cooperate')===false],
+      ['“你怎么这么会给自己定规矩？”',()=>miloIntroFinish('tease')===false]
+   ]);return false;
+ }
+ state.traits.bold++;rel('milo',2);
+ sheet('米洛 · 第一印象',`${sceneArt('公寓','玄关','他挑了挑眉，像是第一次被新室友这么直接地问。')}<div class="story">“对。”
+
+“我就叫米洛。”
+
+他笑起来。
+
+“你记性不错。”
+
+你：“我只是确认一下。”
+
+米洛：“那你记住。”
+
+“这里最麻烦的人暂时不是我。”</div>`,[
+      ['“那是谁？”',()=>miloIntroFinish('who')===false],
+      ['“我先相信你。”',()=>miloIntroFinish('trust')===false],
+      ['“你这句话听起来很可疑。”',()=>miloIntroFinish('suspicious')===false]
+ ]);return false;
+}
+function miloIntroFinish(kind){
+ const map={boundary:'你给自己留了一点距离。',cool:'你决定先观察他。',rules:'你开始认真记住这套房子的细节。',chaos:'你决定第一天就故意踩一下公寓的边界。',cooperate:'你和米洛暂时达成了简单的相处规则。',tease:'你发现和米洛斗嘴似乎会比尴尬地聊天轻松。',who:'你第一次意识到：这里可能不只有一个“奇怪的人”。',trust:'你决定先给这个陌生室友一次机会。',suspicious:'你对米洛的第一印象，是“有点可疑”。'};
+ mem('米洛第一印象：'+map[kind]);
+ if(kind==='rules'||kind==='who') state.oddity+=1;
+ addLog('米洛',map[kind]);
+ sheet('米洛 · 结果',`${sceneArt('公寓','客厅 · 17:18','你们的第一次对话终于结束了，但关系已经留下了第一笔记录。')}<div class="story">米洛拿回自己的游戏手柄。
+
+“行。”
+
+“那以后就一起住。”
+
+他走了两步，又回头。
+
+“对了——”
+
+“晚上十点以后，听见厨房有声音的话，先别开灯。”
+
+你：“为什么？”
+
+米洛想了一下。
+
+“……我忘了。”
+
+他关上门。
+
+<b>你第一次发现：这个人好像并没有看起来那么随便。</b></div>`,[
+   ['去看看厨房。',()=>{state.flags.kitchenHint=true;addLog('米洛','你马上注意到了厨房。');return false}],
+   ['先去房间整理东西。',()=>{state.flags.roomFirst=true;addLog('米洛','你决定先把自己的生活安顿好。');return false}],
+   ['给米洛发消息：“你刚刚什么意思？”',()=>{state.flags.textMilo=true;state.messages.push('米洛：等一下。');return false}]
+ ]);
+ return false;
+}
+
 function mainEvent(){
  if(state.day===1&&!state.flags.milo){
    state.flags.milo=true;rel('milo',1);mem('Day 1：第一次见到米洛。');
-   sheet('DAY 1 · 你终于见到米洛',`${sceneArt('公寓','客厅 · 17:04','游戏声音从半掩着的房门里漏出来。')}<div class="story">你把最后一个箱子拖进客厅。
+   sheet('DAY 1 · 门外的人',`${sceneArt('公寓','玄关 · 17:06','门外的声音又响了一次。')}<div class="story">你打开门。
 
-米洛从游戏里抬头。
+一个男生站在门口，手里抱着游戏手柄和一袋零食。
 
-“你就是新来的？”
+他先看你，再看你身后的箱子。
 
-他看了一眼你的行李。
+“新来的？”
 
-“行李这么少？你准备只住一周，还是七天以后跑路？”
+你点头。
 
-你还没回答，他就笑了。
+他笑了。
 
-“别紧张。我很好相处。”
+“米洛。”
 
-停半秒。
+他把手里的零食举起来。
 
-“……大部分时候。”
+“这是欢迎礼。”
 
-门口的绒团团突然打了个喷嚏。</div>`,[
- ['“你这是在欢迎我吗？”',()=>rel('milo',1)],
- ['“冰箱那格我不会动。”',()=>{rel('milo',2);state.trust.milo+=1}],
- ['先去看那只白兔。',()=>{rel('bun',1);state.oddity+=1}]
- ]);return;
+停了一下。
+
+“准确说，是我本来打算自己吃的。”</div>`,[
+     ['“那我不要。”',()=>miloIntroBranch('拒绝')===false],
+     ['“谢谢，我收下。”',()=>miloIntroBranch('接受')===false],
+     ['“你就叫米洛？”',()=>miloIntroBranch('反问')===false]
+   ]);return;
  }
  if(state.day===2&&!state.flags.nora&&state.slot>=2){
    state.flags.nora=true;rel('nora',1);mem('Day 2：诺拉第一次回到公寓。');
@@ -818,6 +968,119 @@ const V04_NPCS={
  ash:{name:'阿灰',emoji:'🧢',role:'便利店常客',place:'便利店',desc:'总在同一个时间来买水，却从不带钱包。',max:100},
  noa:{name:'诺亚',emoji:'🪩',role:'夜班服务生',place:'咖啡店',desc:'偶尔在不同的店出现，好像城市没有给他固定工作。',max:100}
 };
+const V05_EVENTS=[
+ {id:'delivery',need:s=>s.day===1&&s.location==='公寓'&&s.slot>=1,run:s=>{
+   sheet('DAY 1 · 奇怪的快递',`${sceneArt('公寓','门口 · 12:34','一个没有寄件人信息的纸箱放在门外。')}<div class="story">箱子上的收件人写着你的名字。
+
+但下面还有一行：
+
+“上一位住户，请签收。”
+
+你确定自己是第一次住这里。</div>`,[
+    ['拆开看看。',()=>{s.oddity+=2;mem('你打开了一个写着“上一位你”的快递。');addItem('无日期钥匙');addLog('异常','箱子里有一把没有标签的钥匙。');return false}],
+    ['拒收。',()=>{s.traits.suspicious++;addLog('门口','你没有碰那个箱子。第二次回头时，它已经不见了。');return false}],
+    ['问米洛。',()=>{rel('milo',2);s.flags.deliveryMilo=true;return false}]
+   ]);
+ }},
+ {id:'breakfast',need:s=>s.day===1&&s.location==='公寓'&&s.slot===0,run:s=>{
+   sheet('DAY 1 · 早餐战线',`${sceneArt('公寓','厨房 · 09:12','冰箱门半开着。米洛的早餐看起来像昨晚的零食。')}<div class="story">你打开冰箱。
+
+里面有两份看起来还能吃的早餐。
+
+其中一份上贴着：
+
+“不是我的。”
+
+你盯着那张便利贴看了一会儿。
+
+米洛从后面探头：“你找到我的早餐了？”</div>`,[
+    ['“那我吃掉了。”',()=>{s.traits.chaos++;rel('milo',1);addLog('厨房','你差点把米洛的早餐吃了。');return false}],
+    ['“给你留着。”',()=>{s.traits.kind++;rel('milo',2);return false}],
+    ['“你为什么给食物贴标签？”',()=>{s.traits.suspicious++;rel('milo',1);return false}]
+   ]);
+ }},
+ {id:'neighbor',need:s=>s.day===1&&s.slot>=1,run:s=>{
+   sheet('DAY 1 · 隔壁有人',`${sceneArt('公寓','走廊','走廊的灯一直亮着。隔壁门上贴着一张“请不要敲门”的纸。')}<div class="story">你正准备走过去，门突然自己开了一条缝。
+
+里面的人探出头。
+
+“你是新来的？”
+
+“是。”
+
+他点点头。
+
+“那你还不知道。”
+
+“什么？”
+
+他看了看你，又把门关上。
+
+“没什么。”</div>`,[
+    ['敲门追问。',()=>{s.oddity+=1;rel('unknown',1);addLog('邻居','你敲了两次门，但没有人再回应。');return false}],
+    ['把纸条拍下来。',()=>{addItem('邻居门牌照片');mem('隔壁邻居似乎知道一些关于公寓的事。');return false}],
+    ['装作没看到。',()=>{s.traits.suspicious++;return false}]
+   ]);
+ }},
+ {id:'mirror2',need:s=>s.day===1&&s.location==='公寓'&&s.slot===4,run:s=>{
+   s.oddity+=2;
+   sheet('DAY 1 · 00:03',`${sceneArt('公寓','浴室 · 深夜','灯没有开，但镜子里像是有人站着。')}<div class="story">你打开手机手电。
+
+镜子里的你抬起了头。
+
+你没有。
+
+只快了那么一秒。
+
+然后一切恢复正常。
+
+绒团团从门外探进来。
+
+“不要告诉它你看见了。”</div>`,[
+    ['“它是谁？”',()=>{s.oddity+=2;rel('bun',2);return false}],
+    ['拍照。',()=>{addItem('镜子照片');mem('第一天深夜，镜子里的动作比你快了一秒。');return false}],
+    ['立刻关门睡觉。',()=>{s.traits.suspicious++;return false}]
+   ]);
+ }},
+ {id:'phoneLoop',need:s=>s.day===1&&s.slot>=2,run:s=>{
+   s.oddity+=2;
+   sheet('DAY 1 · 未知联系人',`${sceneArt('公寓','手机 · 19:27','联系人没有名字，头像是你的旧照片。')}<div class="story">【未知联系人】
+
+“今天晚上不要走河岸。”
+
+你盯着这条消息。
+
+下一条马上来了：
+
+“你上次就是在那里决定留下的。”</div>`,[
+    ['回复：“你是谁？”',()=>{rel('unknown',2);s.traits.bold++;return false}],
+    ['截图保存。',()=>{addItem('未知消息截图');mem('你收到了一条来自未知联系人的“上次”消息。');return false}],
+    ['删除。',()=>{s.traits.suspicious++;return false}]
+   ]);
+ }},
+ {id:'miloGame',need:s=>s.day===1&&s.location==='公寓'&&s.rel.milo>=2,run:s=>{
+   sheet('DAY 1 · 关键局',`${sceneArt('公寓','米洛房间','游戏音效突然停了。')}<div class="story">米洛把手柄放下。
+
+“你来了。”
+
+“刚好缺一个人。”
+
+他看你一眼。
+
+“输了算你的，赢了算我的。”</div>`,[
+    ['“成交。”',()=>{rel('milo',2);mem('你和米洛第一次一起打游戏。');return false}],
+    ['“输了别赖我。”',()=>{rel('milo',2);s.traits.chaos++;return false}],
+    ['“你为什么突然想让我加入？”',()=>{rel('milo',3);s.traits.suspicious++;mem('米洛主动邀请你加入他的游戏。');return false}]
+   ]);
+ }}
+];
+function triggerV05Event(force=false){
+ const eligible=V05_EVENTS.filter(e=>e.need(state)&&(!state.worldFlags?.['v05:'+e.id]||force));
+ if(!eligible.length)return false;
+ const e=eligible[Math.floor(Math.random()*eligible.length)];
+ state.worldFlags=state.worldFlags||{};state.worldFlags['v05:'+e.id]=true;e.run(state);save();return true;
+}
+
 const V04_EVENTS=[
  {id:'chair',tag:'日常',title:'椅子自己换了位置',need:s=>s.location==='公寓'&&s.slot>=1,weight:3,run:s=>{s.oddity+=1;mem('你发现客厅的椅子换过位置。没有人承认。');addLog('异常日常','客厅的椅子自己换了位置。')}} ,
  {id:'receipt',tag:'异常',title:'没有商品的小票',need:s=>s.location==='便利店',weight:2,run:s=>{s.oddity+=2;mem('便利店小票只有一句话：明天也会来。');addLog('便利店','收银机吐出一张没有商品的票。')}} ,
@@ -940,17 +1203,18 @@ function dailyNPCMove(){
 }
 function nextSlot(){
  if(state.finished)return;
- if(state.slot<times.length-1){state.slot++;state.energy=Math.max(0,state.energy-1);dailyNPCMove();if(Math.random()<0.33)triggerV04Event();save();render();return}
+ if(state.slot<times.length-1){state.slot++;state.energy=Math.max(0,state.energy-1);dailyNPCMove();if(Math.random()<0.50 && !triggerV05Event())triggerV04Event();save();render();return}
  if(state.day<7){state.day++;state.slot=0;state.energy=5;state.money+=18;addLog('生活','睡了一觉。今天到账 $18。');dailyNPCMove();
    if(state.day%2===0){state.repeat++; if(state.repeat===1)mem('你的第二周还没到，但某些人似乎已经把你当成见过的人。');}
-   if(Math.random()<0.5)triggerV04Event();save();render();return;
+   if(Math.random()<0.60 && !triggerV05Event())triggerV04Event();save();render();return;
  }
  state.finished=true;save();showEnding();
 }
 function freeAction(){
  if(!energyUse())return;
  const r=Math.random();
- if(r<0.38 && triggerV04Event()){render();return}
+ if(r<0.55 && triggerV05Event()){render();return}
+ if(r<0.77 && triggerV04Event()){render();return}
  if(r<0.58)roomFree();else if(r<0.74)kitchen();else {addLog('生活','你什么都没做，只是坐着发呆。');render();}
 }
 function city(){
@@ -1010,16 +1274,16 @@ ${rs}
 function render(){
  const t=times[state.slot]; const loc=places[state.location]||places.公寓; dailyNPCMove();
  $('app').innerHTML=`
- <div class="top"><div><div class="logo">7 DAYS WITH YOUR ROOMMATE</div><div class="sub">RELATIONSHIP LIFE SIM · V0.4 CONTENT ENGINE</div></div>
+ <div class="top"><div><div class="logo">7 DAYS WITH YOUR ROOMMATE</div><div class="sub">RELATIONSHIP LIFE SIM · V0.5 BRANCHING CONTENT ENGINE</div></div>
  <div class="stats"><span class="pill">DAY ${state.day}/7</span><span class="pill">${t[0]} · ${t[1]}</span><span class="pill">⚡ ${state.energy}/5</span><span class="pill">💵 $${state.money}</span></div></div>
- <div class="wrap"><div class="hero"><small>WEEK 01 · ${t[1].toUpperCase()}</small><h1>${escapeHtml(state.name)}，今天怎么过？</h1><p>你没有任务清单。你有一座城市、一间公寓、几个人，以及一个越来越不可靠的现实。</p><div class="badgeRow"><span class="chip">自由生活</span><span class="chip">关系</span><span class="chip">随机事件</span><span class="chip">异常居民</span><span class="chip">七日循环</span></div></div>
+ <div class="wrap"><div class="hero"><small>WEEK 01 · ${t[1].toUpperCase()}</small><h1>${escapeHtml(state.name)}，今天怎么过？</h1><p>你没有任务清单。你有一座城市、一间公寓、几个人，以及一个越来越不可靠的现实。</p><div class="badgeRow"><span class="chip">自由生活</span><span class="chip">关系</span><span class="chip">随机事件</span><span class="chip">异常居民</span><span class="chip">七日循环</span>${state.traits?.bold?' <span class="chip">敢直接说</span>':''}${state.traits?.kind?' <span class="chip">会照顾人</span>':''}${state.traits?.suspicious?' <span class="chip">开始怀疑</span>':''}${state.traits?.chaos?' <span class="chip">有点欠</span>':''}</div></div>
  <div class="shell"><aside class="card sidebar"><div class="sidegrid"><div class="side-section"><div class="side-title">状态</div><div class="statrow"><span>现金</span><b>$${state.money}</b></div><div class="statrow"><span>时间</span><b>${t[1]}</b></div><div class="statrow"><span>异常感</span><b>${state.oddity}</b></div><div class="statrow"><span>天气</span><b>${state.weather}</b></div></div><div class="side-section"><div class="side-title">地点</div><div class="nav">${Object.keys(places).map(p=>`<button class="${p===state.location?'active':''}" onclick="visit('${p}')">${p}</button>`).join('')}</div></div><div class="side-section"><div class="side-title">今天的规则</div><div class="muted" style="font-size:9px;line-height:1.55">没有强制任务。随机事件、NPC 日程和关系记忆会自己运行。<br><span class="badge">大事件不按周刷新</span></div></div></div></aside>
  <main class="card"><div class="sceneHead"><h2>${state.location}</h2><span class="tag">${loc.tag}</span></div>${stageArt(state.location)}<div class="actions" id="actions"></div><h3 style="font-size:11px;margin:13px 0 8px">最近发生</h3><div class="log">${state.log.length?state.log.map(x=>`<div><b>DAY ${x.d} · ${x.t}</b>${escapeHtml(x.x)}</div>`).join(''):'<div><b>DAY 1</b>你刚搬进来。</div>'}</div></main>
  <aside class="card phone"><div class="phone-section"><h3>📱 手机</h3><div class="phone-item"><span>Wallet</span><b>$${state.money}</b></div><div class="phone-item"><span>Chat</span><small>${state.messages.length} new</small></div><div class="phone-item"><span>Memory</span><small>${state.memories.length}</small></div></div><div class="phone-section"><h3>❤️ 关系</h3>${['milo','nora','unknown','bun'].map((k,i)=>`<div class="rel"><div class="relhead"><span>${['🎧','🪞','🕶️','🐇'][i]} ${['米洛','诺拉','陌生男人','绒团团'][i]}</span><b>${relText(state.rel[k])}</b></div><div class="meter"><i style="width:${Math.max(0,Math.min(100,state.rel[k]))}%"></i></div></div>`).join('')}</div><div class="phone-section"><h3>👥 今天可能遇见</h3><div class="npcGrid">${visibleNPCs().map(n=>{const id=Object.keys(V04_NPCS).find(k=>V04_NPCS[k]===n);return `<button class="npcCard" onclick="meetOddNpc('${id}')"><div class="npcAvatar">${n.emoji}</div><div><b>${n.name}</b><small>${n.role}</small></div></button>`}).join('')||'<div class="muted" style="font-size:9px">今天没有特别的 NPC。</div>'}</div></div><div class="phone-section"><h3>🎒 背包</h3><div class="muted" style="font-size:9px;line-height:1.55">${state.inventory.length?state.inventory.map(x=>'• '+escapeHtml(x)).join('<br>'):'空空的。'}</div></div></aside></div>
  <div class="cards"><div class="mini"><b>🧭 世界状态</b><p>Cycle ${state.cycle||1} · 异常 ${state.oddity}</p></div><div class="mini"><b>🧠 Memory</b><p>${state.memories.length?escapeHtml(state.memories[state.memories.length-1]):'还没有特别的记忆。'}</p></div><div class="mini"><b>🌸 NPC</b><p>城市里有一些居民不是普通 NPC，他们也可以成为朋友。</p></div></div></div>
  <div class="dock"><button class="active" onclick="visit('公寓')">🏠<br>公寓</button><button onclick="phone()">📱<br>手机</button><button onclick="city()">🌆<br>城市</button><button onclick="relations()">♡<br>关系</button><button onclick="nextSlot()">→<br>结束时段</button></div>`;
  const a=$('actions');
- if(state.location==='公寓') a.innerHTML=[['找米洛','看看他今天在干嘛。',()=>meetMilo()],['找诺拉',state.day>=2?'她可能已经回来了。':'她还没出现。',()=>meetNora()],['找绒团团','它可能知道不该知道的事。',()=>meetBun()],['去城市','便利店 / 咖啡店 / 商场 / 河岸。',()=>city()],['看手机','Wallet / Chat / Memory / 异常居民。',()=>phone()],['整理房间','房间会慢慢变成你的地方。',()=>roomFree()],['看看厨房','可能很普通，也可能不太普通。',()=>kitchen()],['恶作剧米洛','袜子只是开始。',()=>prank()],['随便待着','没有目标也可以生活。',()=>freeAction()],['今天的故事','推进主线钩子。',()=>{if(energyUse())mainEvent()}],['去兼职','赚钱，也可能遇见某个人。',()=>work()],['商城','买礼物、房间物品和生活用品。',()=>shop()]].map(x=>`<button class="act" onclick="doAction(${x[2].toString()})"><b>${escapeHtml(x[0])}</b><small>${escapeHtml(x[1])}</small></button>`).join('');
+ if(state.location==='公寓') a.innerHTML=[['找米洛','看看他今天在干嘛。',()=>meetMilo()],['找诺拉',state.day>=2?'她可能已经回来了。':'她还没出现。',()=>meetNora()],['找绒团团','它可能知道不该知道的事。',()=>meetBun()],['去城市','便利店 / 咖啡店 / 商场 / 河岸。',()=>city()],['看手机','Wallet / Chat / Memory / 异常居民。',()=>phone()],['整理房间','房间会慢慢变成你的地方。',()=>roomFree()],['看看厨房','可能很普通，也可能不太普通。',()=>kitchen()],['恶作剧米洛','袜子只是开始。',()=>prank()],['随便待着','没有目标也可以生活。',()=>freeAction()],['今天的故事','推进主线；你的选择会产生后续回应。',()=>{if(energyUse())mainEvent()}],['看看记忆','回顾刚才的决定有没有留下痕迹。',()=>memoryList()],['去兼职','赚钱，也可能遇见某个人。',()=>work()],['商城','买礼物、房间物品和生活用品。',()=>shop()]].map(x=>`<button class="act" onclick="doAction(${x[2].toString()})"><b>${escapeHtml(x[0])}</b><small>${escapeHtml(x[1])}</small></button>`).join('');
  else a.innerHTML=`<button class="act" onclick="exploreLocation()"><b>进入地点</b><small>看看这里今天发生什么。</small></button><button class="act" onclick="visit('公寓')"><b>回公寓</b><small>回去和室友生活。</small></button><button class="act" onclick="nextSlot()"><b>离开这里</b><small>把这个时间段交给城市自己运行。</small></button>`;
 }
 
